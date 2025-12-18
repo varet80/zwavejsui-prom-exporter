@@ -1,7 +1,8 @@
-const promCli = require('prom-client')
-const { HttpServer } = require('./HttpServer')
-const logger = require('../../../lib/logger.js').module('Prometheus')
-exports.logger = logger
+import promCli from 'prom-client'
+import { HttpServer } from './HttpServer.js'
+import loggerModule from '../../../lib/logger.js'
+const logger = loggerModule.module('Prometheus')
+export { logger }
 
 let instance = null // the singleton instance
 
@@ -114,4 +115,4 @@ function onValueChanged (valueId) {
   gaugePayload(valueId)
 }
 
-module.exports = PromClient
+export default PromClient

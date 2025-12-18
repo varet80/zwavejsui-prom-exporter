@@ -1,4 +1,6 @@
-const fastify = require('fastify')()
+import fastify from 'fastify'
+
+const app = fastify()
 
 // Http Server settings
 const httpPort = 9001
@@ -8,7 +10,7 @@ const httpMetricPath = '/metrics'
 // Http Server to return metrics
 function HttpServer (customRegistry, logger) {
   // Declare a route
-  fastify.get(httpMetricPath, async request => {
+  app.get(httpMetricPath, async request => {
     logger.info(`Metrics query from ${request.ip}`)
     return customRegistry.metrics()
   })
@@ -16,12 +18,12 @@ function HttpServer (customRegistry, logger) {
   // Run the server!
   const start = async () => {
     try {
-      await fastify.listen(httpPort, httpAddr)
+      await app.listen(httpPort, httpAddr)
     } catch (err) {
-      fastify.log.error(err)
+      app.log.error(err)
       process.exit(1)
     }
   }
   start()
 }
-exports.HttpServer = HttpServer
+export { HttpServer }
