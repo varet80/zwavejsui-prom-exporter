@@ -1,9 +1,7 @@
 import promCli from 'prom-client'
 import { HttpServer } from './HttpServer.js'
-let instance = null // the singleton instance
-/**
- * Registry and Gauge settings for Prometheus
- */
+
+let instance = null
 const PromCliRegistry = promCli.Registry
 const customRegistry = new PromCliRegistry()
 const gauge = new promCli.Gauge({
@@ -24,39 +22,49 @@ const gauge = new promCli.Gauge({
   ]
 })
 
-/**
- * Function to initiate the Client (plugin)
- **/
 function PromClient (ctx) {
-  
   if (!(this instanceof PromClient)) {
     return new PromClient(ctx)
   }
 
-  // start http server
-  HttpServer(customRegistry)
-  
-  instance = this
   this.zwave = ctx.zwave
   this.logger = ctx.logger
-  this.logger.info('test')
+  this.mqttClient = ctx.mqtt
+  this.httpServer = null
+
+  // Start HTTP server with logger
+  this.httpServer = HttpServer(customRegistry, this.logger)
+
+  instance = this
+  this.logger.info('Prometheus exporter plugin initialized')
   this.start()
 }
 
 PromClient.prototype.start = async function () {
-  this.logger.info('Event caller')
+  this.logger.info('Starting Prometheus exporter')
   if (this.zwave) {
     this.zwave.on('valueChanged', onValueChanged.bind(this))
     this.zwave.on('nodeRemoved', onNodeRemoved.bind(this))
   }
-  // this is async but doesn't need to be awaited
-  // this.zwave.connect()
 }
 
-// Implements the Payload for gauge, and registers/upgrade gauge
+// ✅ REQUIRED: Implement destroy method
+PromClient.prototype.destroy = async function () {
+  this.logger.info('Destroying Prometheus exporter plugin')
+  
+  if (this.zwave) {
+    this.zwave.removeAllListeners('valueChanged')
+    this.zwave.removeAllListeners('nodeRemoved')
+  }
+  
+  if (this.httpServer) {
+    await this.httpServer.stop()
+  }
+}
+
 function gaugePayload (payload) {
   this.logger.info('Processing payload for gauge')
-  // Ignore CCs not making sense to monitor
+  
   switch (payload.commandClass) {
     case 112:
     case 114:
@@ -77,11 +85,13 @@ function gaugePayload (payload) {
     default:
       return
   }
+  
   this.logger.info(`Adding value to metric ${payload.id}`)
+  let node = this.zwave.nodes.get(payload.nodeId)
   const gaugeLabels = {
     nodeId: payload.nodeId,
-    name: payload.nodeName,
-    location: payload.nodeLocation,
+    name: node.name,
+    location: node.loc,
     commandClass: payload.commandClassName,
     property: payload.propertyName,
     propertyKey: payload.propertyKey,
@@ -90,22 +100,19 @@ function gaugePayload (payload) {
     endpoint: payload.endpoint,
     id: payload.id
   }
-  // set gauge
+  
   gauge.set(gaugeLabels, metricValue)
   this.logger.debug(`Registered ${metricValue} under ${payload.id}`)
 }
 
-// TODO: Placeholder for removal
 function onNodeRemoved (node) {
-  this.logger.debug(`Node data ${node}`)
+  this.logger.debug(`Node removed: ${node.id}`)
 }
 
-/**
- * Value changes calls for change
- **/
+// ✅ FIX: Use .call(this) to bind the correct context
 function onValueChanged (valueId) {
   this.logger.debug(`Value ${valueId.value} is typeof ${typeof valueId.value}`)
-  gaugePayload(valueId)
+  gaugePayload.call(this, valueId)
 }
 
 export default PromClient
