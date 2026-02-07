@@ -1,11 +1,6 @@
 import promCli from 'prom-client'
 import { HttpServer } from './HttpServer.js'
-import loggerModule from '../../../lib/logger.js'
-const logger = loggerModule.module('Prometheus')
-export { logger }
-
 let instance = null // the singleton instance
-
 /**
  * Registry and Gauge settings for Prometheus
  */
@@ -13,8 +8,8 @@ const PromCliRegistry = promCli.Registry
 const customRegistry = new PromCliRegistry()
 const gauge = new promCli.Gauge({
   registers: [customRegistry],
-  name: 'zj2m',
-  help: 'zwavejs2mqtt gauges from metrics',
+  name: 'zjui',
+  help: 'zwave-js-ui gauges from metrics',
   labelNames: [
     'nodeId',
     'location',
@@ -32,27 +27,24 @@ const gauge = new promCli.Gauge({
 /**
  * Function to initiate the Client (plugin)
  **/
-function PromClient (zwave) {
+function PromClient (ctx) {
   
   if (!(this instanceof PromClient)) {
-    return new PromClient(zwave)
+    return new PromClient(ctx)
   }
 
-  if (instance) {
-    instance.destroy()
-  } else {
-    // start http server
-    HttpServer(customRegistry, logger)
-  }
+  // start http server
+  HttpServer(customRegistry)
   
   instance = this
-  this.zwave = zwave
-  
+  this.zwave = ctx.zwave
+  this.logger = ctx.logger
+  this.logger.info('test')
   this.start()
 }
 
 PromClient.prototype.start = async function () {
-  logger.info('Event caller')
+  this.logger.info('Event caller')
   if (this.zwave) {
     this.zwave.on('valueChanged', onValueChanged.bind(this))
     this.zwave.on('nodeRemoved', onNodeRemoved.bind(this))
@@ -63,6 +55,7 @@ PromClient.prototype.start = async function () {
 
 // Implements the Payload for gauge, and registers/upgrade gauge
 function gaugePayload (payload) {
+  ctx.logger.info('Processing payload for gauge')
   // Ignore CCs not making sense to monitor
   switch (payload.commandClass) {
     case 112:
@@ -84,7 +77,7 @@ function gaugePayload (payload) {
     default:
       return
   }
-  logger.info(`Adding value to metric ${payload.id}`)
+  this.logger.info(`Adding value to metric ${payload.id}`)
   const gaugeLabels = {
     nodeId: payload.nodeId,
     name: payload.nodeName,
@@ -99,19 +92,19 @@ function gaugePayload (payload) {
   }
   // set gauge
   gauge.set(gaugeLabels, metricValue)
-  logger.debug(`Registered ${metricValue} under ${payload.id}`)
+  this.logger.debug(`Registered ${metricValue} under ${payload.id}`)
 }
 
 // TODO: Placeholder for removal
 function onNodeRemoved (node) {
-  logger.debug(`Node data ${node}`)
+  this.logger.debug(`Node data ${node}`)
 }
 
 /**
  * Value changes calls for change
  **/
 function onValueChanged (valueId) {
-  logger.debug(`Value ${valueId.value} is typeof ${typeof valueId.value}`)
+  ctx.logger.debug(`Value ${valueId.value} is typeof ${typeof valueId.value}`)
   gaugePayload(valueId)
 }
 

@@ -11,7 +11,7 @@ const DEFAULT_METRIC_PATH = '/metrics'
 // - options: { port, host, metricPath, exitOnError }
 //   exitOnError: when true, process.exit(1) will be called on startup failure (opt-in)
 function HttpServer (customRegistry, logger, options = {}) {
-  const port = options.port ?? DEFAULT_PORT
+  const port = DEFAULT_PORT
   const host = options.host ?? DEFAULT_ADDR
   const metricPath = options.metricPath ?? DEFAULT_METRIC_PATH
   const exitOnError = !!options.exitOnError
