@@ -55,7 +55,7 @@ PromClient.prototype.start = async function () {
 
 // Implements the Payload for gauge, and registers/upgrade gauge
 function gaugePayload (payload) {
-  ctx.logger.info('Processing payload for gauge')
+  this.logger.info('Processing payload for gauge')
   // Ignore CCs not making sense to monitor
   switch (payload.commandClass) {
     case 112:
@@ -104,7 +104,7 @@ function onNodeRemoved (node) {
  * Value changes calls for change
  **/
 function onValueChanged (valueId) {
-  ctx.logger.debug(`Value ${valueId.value} is typeof ${typeof valueId.value}`)
+  this.logger.debug(`Value ${valueId.value} is typeof ${typeof valueId.value}`)
   gaugePayload(valueId)
 }
 
