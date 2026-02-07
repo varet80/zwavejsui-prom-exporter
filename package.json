@@ -1,6 +1,6 @@
 {
-  "name": "@varet80/zwavejsui-prom-exporter",
-  "version": "0.1.6",
+  "name": "@ongit/zwavejsui-prom-exporter",
+  "version": "0.2.0",
   "description": "A Prometheus exported for zwave-js-ui",
   "type": "module",
   "main": "index.js",
