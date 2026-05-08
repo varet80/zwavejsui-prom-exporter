@@ -2,8 +2,10 @@
 
 This project is archived
 Please consider migrating to the new, websocket based exporter 
-Exporter: https://github.com/k8sonlab/zwave-js-prom-exporter
-Helmc chart implementing the exporter: https://artifacthub.io/packages/helm/k8sonlab/zwave-js-ui
+
+Exporter: [Zwave-JS-prom-exporter](https://github.com/k8sonlab/zwave-js-prom-exporter)
+
+Helm chart implementing the exporter: [Artifact Hub Chart](https://artifacthub.io/packages/helm/k8sonlab/zwave-js-ui)
 
 
 ### zwavejs2mqtt Prometheus Exporter
