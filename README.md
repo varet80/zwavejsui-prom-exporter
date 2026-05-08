@@ -7,6 +7,7 @@ Exporter: [Zwave-JS-prom-exporter](https://github.com/k8sonlab/zwave-js-prom-exp
 
 Helm chart implementing the exporter: [Artifact Hub Chart](https://artifacthub.io/packages/helm/k8sonlab/zwave-js-ui)
 
+---
 
 ### zwavejs2mqtt Prometheus Exporter
 
