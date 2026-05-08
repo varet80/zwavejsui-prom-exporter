@@ -6,7 +6,7 @@ Exporter: https://github.com/k8sonlab/zwave-js-prom-exporter
 Helmc chart implementing the exporter: https://artifacthub.io/packages/helm/k8sonlab/zwave-js-ui
 
 
-# zwavejs2mqtt Prometheus Exporter
+### zwavejs2mqtt Prometheus Exporter
 
 This tool is meant to enable Prometheus exporter interface, in order to collect metrics using a prometheus scraper.
 
